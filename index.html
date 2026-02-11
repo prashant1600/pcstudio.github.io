@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRASHANT CHATURVEDI STUDIO | Digital Dreams</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="script.js"></script>
+
+    <style>
+        :root {
+            --bg: #0A0F1C;
+            --primary: #9338d4;
+            --secondary: #9D4EDD;
+            --accent: #27a6aa;
+            --text: #E6E6E6;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(59, 20, 20, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Custom Cursor */
+        #cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
+        }
+
+        /* 3D Background Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100vh;
+            z-index: -1;
+        }
+
+        /* Glassmorphism Navigation */
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 25px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(10, 15, 28, 0.8);
+            border-bottom: 1px solid rgba(39, 166, 170, 0.2);
+        }
+
+        .logo { 
+            font-weight: 900; 
+            letter-spacing: 3px; 
+            font-size: 2.5rem; 
+            color: var(--accent); 
+            text-shadow: 0 0 30px rgba(39, 166, 170, 0.6), 0 0 60px rgba(39, 166, 170, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .logo:hover {
+            text-shadow: 0 0 40px rgba(39, 166, 170, 0.8), 0 0 80px rgba(39, 166, 170, 0.5);
+            transform: scale(1.05) letterSpacing(4px);
+        }
+
+        /* Navigation Menu */
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 101;
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 2px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+        }
+
+        .hero h1 {
+            font-size: 8vw;
+            line-height: 0.9;
+            text-transform: uppercase;
+            background: linear-gradient(to bottom, #fff, #666);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .hero p { font-size: 1.2rem; max-width: 600px; opacity: 0.8; margin-bottom: 40px; }
+
+        .btn-group { display: flex; gap: 20px; }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 0 20px rgba(106, 13, 173, 0.5);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+        /* Sections */
+        section { padding: 100px 10%; position: relative; }
+
+        .section-title {
+            font-size: 3rem;
+            margin-bottom: 50px;
+            color: var(--accent);
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .service-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            transition: 0.5s;
+            transform-style: preserve-3d;
+        }
+
+        .service-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0, 245, 255, 0.1);
+        }
+
+        /* Contact Form */
+        .contact-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--glass);
+            padding: 50px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 10px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 245, 255, 0.3); }
+
+        footer {
+            padding: 50px 10%;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Work Section */
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .work-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            transition: all 0.5s ease;
+            transform-style: preserve-3d;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .work-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-15px) rotateX(5deg);
+            box-shadow: 0 30px 60px rgba(0, 245, 255, 0.15);
+        }
+
+        .work-image-wrapper {
+            position: relative;
+            overflow: hidden;
+            height: 220px;
+            background: linear-gradient(135deg, rgba(106, 13, 173, 0.2), rgba(157, 78, 221, 0.2));
+        }
+
+        .work-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .work-card:hover .work-image {
+            transform: scale(1.1) rotate(2deg);
+        }
+
+        .work-content {
+            padding: 30px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .work-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .work-content p {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .tech-tag {
+            display: inline-block;
+            background: rgba(0, 245, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .tech-tag:hover {
+            background: rgba(0, 245, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Footer Styling */
+        footer {
+            padding: 60px 10%;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: linear-gradient(180deg, transparent, rgba(106, 13, 173, 0.05));
+        }
+
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .footer-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .footer-contact {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            font-weight: 600;
+        }
+
+        .contact-info {
+            font-size: 1.1rem;
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .contact-info:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .footer-divider {
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            margin: 30px auto;
+        }
+
+        .footer-copyright {
+            opacity: 0.5;
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        .reveal { opacity: 0; transform: translateY(30px); }
+
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div id="canvas-container"></div>
+
+    <nav>
+        <div class="logo">PC STUDIO</div>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#services">Services</a>
+            <a href="#work">Experience</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1 class="reveal">WE CRAFT<br>DIGITAL DREAMS</h1>
+        <p class="reveal">Blending aesthetics and technology to create immersive experiences for brands worldwide.</p>
+        <div class="btn-group reveal">
+            <a href="#contact" class="btn btn-primary">Start Project</a>
+            <a href="#work" class="btn btn-outline">View Work</a>
+        </div>
+    </section>
+
+    <section id="about">
+        <h2 class="section-title reveal">Who We Are</h2>
+        <div style="display: flex; align-items: center; gap: 50px;">
+            <p class="reveal" style="flex: 1; font-size: 1.5rem;">
+                We are a multidisciplinary creative studio working at the intersection of design, art, and technology. 
+                Every pixel we place is driven by purpose and cinematic vision.
+            </p>
+            <div id="about-3d" style="width: 300px; height: 300px;"></div>
+        </div>
+    </section>
+
+    <section id="services">
+        <h2 class="section-title reveal">Services</h2>
+        <div class="services-grid">
+            <div class="service-card reveal">
+                <h3>STRATEGY</h3>
+                <p>Brand Positioning • Content Strategy • Market Research</p>
+            </div>
+            <div class="service-card reveal">
+                <h3>DESIGN</h3>
+                <p>UI/UX • Brand Identity • Motion Graphics • 3D</p>
+            </div>
+            <div class="service-card reveal">
+                <h3>DEVELOPMENT</h3>
+                <p>Web Apps • Creative Coding • eCommerce</p>
+            </div>
+            <div class="service-card reveal">
+                <h3>CONTENT</h3>
+                <p>Photography • Video Production • Art Direction</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="work">
+        <h2 class="section-title reveal">Work Experience</h2>
+        <div class="work-grid">
+            <div class="work-card reveal">
+                <div class="work-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&h=300&fit=crop" alt="Salon Website" class="work-image">
+                </div>
+                <div class="work-content">
+                    <h3>Salon Website</h3>
+                    <p>Designed and developed a modern salon website with service listings, appointment booking system, and beautiful gallery showcasing treatments and transformations.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Web Design</span>
+                        <span class="tech-tag">Booking System</span>
+                        <span class="tech-tag">Gallery</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="work-card reveal">
+                <div class="work-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1526480494165-d983b79a831e?w=400&h=300&fit=crop" alt="Taekwondo Class Website" class="work-image">
+                </div>
+                <div class="work-content">
+                    <h3>Taekwondo Academy</h3>
+                    <p>Created an engaging website for a martial arts academy featuring class schedules, instructor profiles, student achievements, and registration forms for new students.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Class Schedule</span>
+                        <span class="tech-tag">Registration</span>
+                        <span class="tech-tag">Achievements</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="work-card reveal">
+                <div class="work-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&h=300&fit=crop" alt="NGO Website" class="work-image">
+                </div>
+                <div class="work-content">
+                    <h3>NGO Platform</h3>
+                    <p>Built a comprehensive NGO website with impact tracking, donation system, volunteer registration, and detailed project documentation to showcase social initiatives.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Donations</span>
+                        <span class="tech-tag">Volunteering</span>
+                        <span class="tech-tag">Impact Tracking</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="work-card reveal">
+                <div class="work-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1509879331150-2f584f90b0d5?w=400&h=300&fit=crop" alt="School Website" class="work-image">
+                </div>
+                <div class="work-content">
+                    <h3>School Portal</h3>
+                    <p>Developed a complete school management website with student enrollment, event calendar, academic resources, and parent communication portal for better school-family engagement.</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Student Portal</span>
+                        <span class="tech-tag">Calendar</span>
+                        <span class="tech-tag">Resources</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2 class="section-title reveal" style="text-align: center;">LET'S START A CONVERSATION</h2>
+        <div class="contact-container reveal">
+            <form id="projectForm">
+                <div class="form-group"><input type="text" id="name" placeholder="Name" required></div>
+                <div class="form-group"><input type="email" id="email" placeholder="Email" required></div>
+                <div class="form-group">
+                    <select id="projectType">
+                        <option>Web Design</option>
+                        <option>3D Animation</option>
+                        <option>Branding</option>
+                    </select>
+                </div>
+                <div class="form-group"><textarea id="message" rows="5" placeholder="Describe Your Idea"></textarea></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; border: none;">Submit Inquiry</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <h2 class="footer-title">PRASHANT CHATURVEDI</h2>
+            
+            <div class="footer-contact">
+                <div class="contact-item">
+                    <div class="contact-label">📧 Email</div>
+                    <a href="mailto:prashant37chaturvedi@gmail.com" class="contact-info">prashant37chaturvedi@gmail.com</a>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-label">📱 Phone</div>
+                    <a href="tel:+917498329228" class="contact-info">+91 7498 329 228</a>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-label">💬 WhatsApp</div>
+                    <a href="https://wa.me/917498329228" target="_blank" class="contact-info">Chat on WhatsApp</a>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <p class="footer-copyright">© 2026 Prashant Chaturvedi Studio | Digital Excellence & Creative Innovation</p>
+        </div>
+    </footer>
+
+    <script>
+        // 1. THREE.JS Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Particles
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        for (let i = 0; i < 5000; i++) {
+            vertices.push(THREE.MathUtils.randFloatSpread(2000), THREE.MathUtils.randFloatSpread(2000), THREE.MathUtils.randFloatSpread(2000));
+        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0x9D4EDD, size: 2 }));
+        scene.add(particles);
+
+        camera.position.z = 1000;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.x += 0.0005;
+            particles.rotation.y += 0.0005;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 2. Cursor Follower
+        const cursor = document.getElementById('cursor');
+        window.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.3 });
+        });
+
+        // 3. GSAP Reveal Animations
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.utils.toArray('.reveal').forEach(elem => {
+            gsap.fromTo(elem, 
+                { opacity: 0, y: 50 }, 
+                { opacity: 1, y: 0, duration: 1.2, ease: "power4.out", scrollTrigger: { trigger: elem, start: "top 85%" } }
+            );
+        });
+
+        // 4. Form Submission Logic
+        document.getElementById('projectForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const idea = document.getElementById('message').value;
+            
+            const waMessage = `Hello Prashant, I want to build a project. Name: ${name}, Email: ${email}, Idea: ${idea}`;
+            window.open(`https://wa.me/917498329228?text=${encodeURIComponent(waMessage)}`, '_blank');
+            alert("Redirecting to WhatsApp...");
+        });
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
